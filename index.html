@@ -132,7 +132,6 @@ function fillSelects(){
     sel.innerHTML="";
     languages.forEach(l=>sel.innerHTML+=`<option value="${l[0]}">${l[1]}</option>`);
   });
-  // Default values
   selects.forEach(id=>document.getElementById(id).value="en");
 }
 window.onload = fillSelects;
@@ -156,22 +155,26 @@ function copyText(id){
   alert("Text copied!");
 }
 
-/* Translate function */
+/* Translate function - final working version */
 async function translate(text,source,target){
   if(!text) return "";
-  source = source || "en"; // default if empty
-  target = target || "en"; // default if empty
+  source = source || "en";
+  target = target || "en";
   showLoader("🔄 Translating...","🔄",30);
   try{
-    const res=await fetch("https://libretranslate.de/translate",{
+    const res = await fetch("https://libretranslate.de/translate",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
       body:JSON.stringify({q:text,source:source,target:target,format:"text"})
     });
-    const data=await res.json();
+    const data = await res.json();
     hideLoader();
     return data.translatedText;
-  }catch(e){ hideLoader(); alert("Translation failed: "+e); return text; }
+  }catch(e){
+    hideLoader();
+    alert("Translation failed: "+e);
+    return text;
+  }
 }
 
 /* Text → Text */
