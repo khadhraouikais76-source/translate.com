@@ -5,6 +5,7 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Universal Translator</title>
 
+<!-- Libraries -->
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.122/pdf.min.js"></script>
@@ -127,8 +128,18 @@ textarea{min-height:140px}
 
 <script>
 let lastText="", selectedFile=null, selectedImage=null;
-const languages=[["en","English"],["ar","Arabic"],["fr","French"],["es","Spanish"],["de","German"],["it","Italian"],["pt","Portuguese"],["ru","Russian"],["tr","Turkish"],["hi","Hindi"],["zh-CN","Chinese"],["ja","Japanese"],["ko","Korean"],["id","Indonesian"],["ur","Urdu"]];
-languages.forEach(l=>{fromLang.innerHTML+=`<option value="${l[0]}">${l[1]}</option>`; toLang.innerHTML+=`<option value="${l[0]}">${l[1]}</option>`;});
+
+const languages=[
+["en","English"],["ar","Arabic"],["fr","French"],["es","Spanish"],
+["de","German"],["it","Italian"],["pt","Portuguese"],
+["ru","Russian"],["tr","Turkish"],["hi","Hindi"],
+["zh","Chinese"],["ja","Japanese"],["ko","Korean"],
+["id","Indonesian"],["ur","Urdu"]
+];
+languages.forEach(l=>{
+  fromLang.innerHTML+=`<option value="${l[0]}">${l[1]}</option>`;
+  toLang.innerHTML+=`<option value="${l[0]}">${l[1]}</option>`;
+});
 toLang.value="en";
 
 /* TABS */
@@ -144,22 +155,33 @@ function hideLoader(){ loader.style.display="none"; bar.style.width="0%"; }
 
 /* SPEECH */
 let synth=window.speechSynthesis,utter;
-function speak(text,lang){ lastText=text; showLoader("🔊 Speaking...","🗣️",90); synth.cancel(); utter=new SpeechSynthesisUtterance(text); utter.lang=lang; utter.onend=hideLoader; synth.speak(utter);}
+function speak(text,lang){ 
+  lastText=text; 
+  showLoader("🔊 Speaking...","🗣️",90); 
+  synth.cancel(); 
+  utter=new SpeechSynthesisUtterance(text); 
+  utter.lang=lang; 
+  utter.onend=hideLoader; 
+  synth.speak(utter);
+}
 function pause(){synth.pause();}
 function resume(){synth.resume();}
 function stop(){synth.cancel(); hideLoader();}
 
-/* TRANSLATE */
+/* TRANSLATE (LibreTranslate) */
 async function translate(text){
   if(!text.trim()){ error.textContent="No text to translate"; return; }
   lastText=text;
   showLoader("🔄 Translating...","🔄",40);
   try{
-    const r=await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${fromLang.value}|${toLang.value}`);
-    updateProgress(70);
+    const r=await fetch("https://libretranslate.de/translate",{
+      method:"POST",
+      headers:{"Content-Type":"application/json"},
+      body:JSON.stringify({q:text,source:fromLang.value,target:toLang.value,format:"text"})
+    });
     const d=await r.json();
-    speak(d.responseData.translatedText,toLang.value);
-  }catch{hideLoader(); error.textContent="Translation error";}
+    speak(d.translatedText,toLang.value);
+  }catch(err){ hideLoader(); error.textContent="Translation error: "+err; }
 }
 function repeatLastText(){ if(lastText) translate(lastText); }
 function translateText(){ translate(textInput.value); }
