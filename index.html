@@ -3,8 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Ultimate Voice Translator</title>
-
+<title>Ultimate Translator App</title>
 <style>
 :root{
   --grad1:#ff6b6b;
@@ -13,11 +12,9 @@
   --grad4:#1dd1a1;
   --card:#1e293b;
   --text:#ffffff;
-  --muted:#cbd5e1;
 }
-*{box-sizing:border-box}
+*{box-sizing:border-box;margin:0;padding:0;}
 body{
-  margin:0;
   font-family:"Segoe UI",Roboto,Arial,sans-serif;
   background:linear-gradient(135deg,var(--grad1),var(--grad2),var(--grad3),var(--grad4));
   color:var(--text);
@@ -32,9 +29,9 @@ header{padding:16px;text-align:center;}
 .tabs button.active{background:linear-gradient(135deg,#fff,#f1f2f6);color:#222;font-weight:700;}
 .section{display:none;padding:16px;}
 .section.active{display:block;}
-.card{background:rgba(30,41,59,.9);border-radius:16px;padding:16px;box-shadow:0 10px 25px rgba(0,0,0,.25);margin-bottom:16px;}
-textarea,input,select{width:100%;padding:12px;margin:10px 0;border-radius:12px;border:none;font-size:16px;}
-textarea{min-height:140px;}
+.card{background:rgba(30,41,59,0.9);border-radius:16px;padding:16px;margin-bottom:16px;box-shadow:0 10px 25px rgba(0,0,0,.25);}
+textarea,input,select{width:100%;padding:12px;margin:10px 0;border-radius:12px;border:none;font-size:16px;background:rgba(255,255,255,0.1);color:#fff;}
+textarea{min-height:120px;}
 .action{background:linear-gradient(135deg,#6c5ce7,#00cec9);border:none;padding:14px;border-radius:14px;font-size:18px;width:100%;color:white;cursor:pointer;margin-top:10px;}
 #loader{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;flex-direction:column;z-index:999;}
 #emoji{font-size:60px;animation:bounce 1s infinite;}
@@ -42,53 +39,74 @@ textarea{min-height:140px;}
 #progress{width:70%;height:8px;background:#444;border-radius:10px;margin-top:20px;overflow:hidden;}
 #bar{height:100%;width:0%;background:linear-gradient(135deg,#6c5ce7,#00cec9);transition:width .4s;}
 #loaderText{margin-top:14px;font-size:16px;}
-#resultText{background:rgba(255,255,255,0.1);padding:10px;border-radius:12px;min-height:100px;color:#fff;white-space:pre-wrap;}
-.copyBtn{margin-top:6px;padding:8px 12px;border:none;border-radius:10px;background:#fd79a8;color:#fff;cursor:pointer;}
+textarea[readonly]{background:rgba(255,255,255,0.1);color:#fff;min-height:120px;font-size:16px;padding:10px;border-radius:12px;}
 </style>
 </head>
-
 <body>
+
 <header>
   <div class="app-header">
     <img class="app-icon" src="https://cdn-icons-png.flaticon.com/512/3898/3898082.png">
-    <div class="app-title">Ultimate Voice Translator</div>
+    <div class="app-title">Ultimate Translator</div>
   </div>
 </header>
 
 <div class="tabs">
-  <button class="active" onclick="tab(0)">📝 Text → Speech</button>
-  <button onclick="tab(1)">🎤 Speech → Text</button>
-  <button onclick="tab(2)">🗣 Speech → Speech</button>
+  <button class="active" onclick="tab(0)">📝 Text → Text</button>
+  <button onclick="tab(1)">📝 Text → Speech</button>
+  <button onclick="tab(2)">🎤 Speech → Text</button>
+  <button onclick="tab(3)">🗣 Speech → Speech</button>
+</div>
+
+<!-- Text → Text -->
+<div class="section active">
+  <div class="card">
+    <textarea id="textInputTT" placeholder="Type text here..."></textarea>
+    <label>Source Language</label>
+    <select id="fromLangTT"></select>
+    <label>Target Language</label>
+    <select id="toLangTT"></select>
+    <button class="action" onclick="textToText()">🌐 Translate</button>
+    <textarea id="resultTextTT" readonly placeholder="Translated text will appear here..."></textarea>
+    <button class="action" onclick="copyText('resultTextTT')">📋 Copy Text</button>
+  </div>
 </div>
 
 <!-- Text → Speech -->
-<div class="section active">
+<div class="section">
   <div class="card">
-    <textarea id="textInput" placeholder="Type text to translate & speak..."></textarea>
-    <select id="toLang"></select>
-    <button class="action" onclick="translateTextToSpeech()">🌐 Translate & Speak</button>
-    <div id="resultText"></div>
-    <button class="copyBtn" onclick="copyText()">📋 Copy</button>
+    <textarea id="textInputTS" placeholder="Type text here..."></textarea>
+    <label>Source Language</label>
+    <select id="fromLangTS"></select>
+    <label>Target Language</label>
+    <select id="toLangTS"></select>
+    <button class="action" onclick="textToSpeech()">🌐 Translate & Speak</button>
+    <div id="resultTextTS"></div>
   </div>
 </div>
 
 <!-- Speech → Text -->
 <div class="section">
   <div class="card">
-    <button class="action" onclick="speechToText()">🎤 Start Listening & Translate</button>
+    <label>Source Language</label>
+    <select id="fromLangSTT"></select>
+    <label>Target Language</label>
     <select id="toLangSTT"></select>
-    <div id="resultTextSTT"></div>
-    <button class="copyBtn" onclick="copyTextSTT()">📋 Copy</button>
+    <button class="action" onclick="speechToText()">🎤 Speak & Translate</button>
+    <textarea id="resultTextSTT" readonly placeholder="Translated text will appear here..."></textarea>
+    <button class="action" onclick="copyText('resultTextSTT')">📋 Copy Text</button>
   </div>
 </div>
 
 <!-- Speech → Speech -->
 <div class="section">
   <div class="card">
-    <button class="action" onclick="speechToSpeech()">🎤 Speak & Translate to Voice</button>
+    <label>Source Language</label>
+    <select id="fromLangSTS"></select>
+    <label>Target Language</label>
     <select id="toLangSTS"></select>
+    <button class="action" onclick="speechToSpeech()">🎤 Speak & Translate to Voice</button>
     <div id="resultTextSTS"></div>
-    <button class="copyBtn" onclick="copyTextSTS()">📋 Copy</button>
   </div>
 </div>
 
@@ -101,13 +119,17 @@ textarea{min-height:140px;}
 
 <script>
 let lastText="";
-const languages=[["en","English"],["ar","Arabic"],["fr","French"],["es","Spanish"],["de","German"],["it","Italian"],["pt","Portuguese"],["ru","Russian"],["tr","Turkish"],["hi","Hindi"],["zh","Chinese"],["ja","Japanese"],["ko","Korean"],["id","Indonesian"],["ur","Urdu"]];
+const languages=[
+["en","English"],["ar","Arabic"],["fr","French"],["es","Spanish"],["de","German"],["it","Italian"],
+["pt","Portuguese"],["ru","Russian"],["tr","Turkish"],["hi","Hindi"],["zh","Chinese"],["ja","Japanese"],
+["ko","Korean"],["id","Indonesian"],["ur","Urdu"]
+];
 
-const selects=[toLang,toLangSTT,toLangSTS];
-selects.forEach(sel=>{
-  languages.forEach(l=>sel.innerHTML+=`<option value="${l[0]}">${l[1]}</option>`);
-});
-toLang.value="en"; toLangSTT.value="en"; toLangSTS.value="en";
+// Fill selects
+const selects=[fromLangTT,toLangTT,fromLangTS,toLangTS,fromLangSTT,toLangSTT,fromLangSTS,toLangSTS];
+selects.forEach(sel=>languages.forEach(l=>sel.innerHTML+=`<option value="${l[0]}">${l[1]}</option>`));
+toLangTT.value="en"; toLangTS.value="en"; toLangSTT.value="en"; toLangSTS.value="en";
+fromLangTT.value="auto"; fromLangTS.value="auto"; fromLangSTT.value="auto"; fromLangSTS.value="auto";
 
 /* Tabs */
 function tab(i){
@@ -117,45 +139,50 @@ function tab(i){
 
 /* Loader */
 function showLoader(text,emoji="⏳",p=30){ loader.style.display="flex"; loaderText.textContent=text; document.getElementById("emoji").textContent=emoji; bar.style.width=p+"%";}
-function updateProgress(p){ bar.style.width=p+"%"; }
 function hideLoader(){ loader.style.display="none"; bar.style.width="0%"; }
 
-/* Speech */
-let synth=window.speechSynthesis,utter;
-function speak(text,lang){
-  lastText=text;
-  showLoader("🔊 Speaking...","🗣️",90);
-  synth.cancel();
-  utter=new SpeechSynthesisUtterance(text);
-  utter.lang=lang;
-  utter.onend=hideLoader;
-  synth.speak(utter);
-}
-
-/* Translate function (LibreTranslate) */
-async function translateText(text,to){
-  showLoader("🔄 Translating...","🔄",40);
+/* Translate function */
+async function translate(text,source,target){
+  showLoader("🔄 Translating...","🔄",30);
   try{
     const res=await fetch("https://libretranslate.de/translate",{
       method:"POST",
       headers:{"Content-Type":"application/json"},
-      body:JSON.stringify({q:text,source:"auto",target:to,format:"text"})
+      body:JSON.stringify({q:text,source:source,target:target,format:"text"})
     });
     const data=await res.json();
     hideLoader();
     return data.translatedText;
-  }catch(e){ hideLoader(); alert("Translation failed:"+e); return text; }
+  }catch(e){ hideLoader(); alert("Translation failed: "+e); return text; }
+}
+
+/* Copy Text */
+function copyText(id){
+  const txt=document.getElementById(id);
+  txt.select();
+  txt.setSelectionRange(0, 99999);
+  document.execCommand("copy");
+  alert("Text copied!");
+}
+
+/* Text → Text */
+async function textToText(){
+  const text=document.getElementById("textInputTT").value.trim();
+  if(!text) return alert("Enter text!");
+  const source=fromLangTT.value,target=toLangTT.value;
+  const translated=await translate(text,source,target);
+  document.getElementById("resultTextTT").value=translated;
+  navigator.clipboard.writeText(translated);
 }
 
 /* Text → Speech */
-async function translateTextToSpeech(){
-  const text=textInput.value.trim();
-  const to=toLang.value;
+async function textToSpeech(){
+  const text=document.getElementById("textInputTS").value.trim();
   if(!text) return alert("Enter text!");
-  showLoader("Translating & Speaking...","🔄",30);
-  const translated=await translateText(text,to);
-  document.getElementById("resultText").textContent=translated;
-  speak(translated,to);
+  const source=fromLangTS.value,target=toLangTS.value;
+  const translated=await translate(text,source,target);
+  document.getElementById("resultTextTS").textContent=translated;
+  speak(translated,target);
 }
 
 /* Speech → Text */
@@ -163,13 +190,13 @@ function speechToText(){
   const R=window.SpeechRecognition||webkitSpeechRecognition;
   if(!R) return alert("Speech recognition not supported");
   const r=new R();
-  r.lang="en-US";
+  r.lang=fromLangSTT.value;
   showLoader("🎤 Listening...","🎤",20);
   r.onresult=async e=>{
     const text=e.results[0][0].transcript;
-    const to=toLangSTT.value;
-    const translated=await translateText(text,to);
-    document.getElementById("resultTextSTT").textContent=translated;
+    const translated=await translate(text,fromLangSTT.value,toLangSTT.value);
+    document.getElementById("resultTextSTT").value=translated;
+    navigator.clipboard.writeText(translated);
     hideLoader();
   };
   r.onerror=e=>{ hideLoader(); alert(e.error); }
@@ -181,23 +208,28 @@ function speechToSpeech(){
   const R=window.SpeechRecognition||webkitSpeechRecognition;
   if(!R) return alert("Speech recognition not supported");
   const r=new R();
-  r.lang="en-US";
+  r.lang=fromLangSTS.value;
   showLoader("🎤 Listening & Translating...","🎤",20);
   r.onresult=async e=>{
     const text=e.results[0][0].transcript;
-    const to=toLangSTS.value;
-    const translated=await translateText(text,to);
+    const translated=await translate(text,fromLangSTS.value,toLangSTS.value);
     document.getElementById("resultTextSTS").textContent=translated;
-    speak(translated,to);
+    speak(translated,toLangSTS.value);
   };
   r.onerror=e=>{ hideLoader(); alert(e.error); }
   r.start();
 }
 
-/* Copy functions */
-function copyText(){navigator.clipboard.writeText(document.getElementById("resultText").textContent);}
-function copyTextSTT(){navigator.clipboard.writeText(document.getElementById("resultTextSTT").textContent);}
-function copyTextSTS(){navigator.clipboard.writeText(document.getElementById("resultTextSTS").textContent);}
+/* Speech synthesis */
+let synth=window.speechSynthesis,utter;
+function speak(text,lang){
+  showLoader("🔊 Speaking...","🗣️",90);
+  synth.cancel();
+  utter=new SpeechSynthesisUtterance(text);
+  utter.lang=lang;
+  utter.onend=hideLoader;
+  synth.speak(utter);
+}
 </script>
 </body>
 </html>
