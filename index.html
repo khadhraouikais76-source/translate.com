@@ -23,7 +23,7 @@ button {
   border: none;
   background: #4caf50;
   color: white;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   width: 90%;
   max-width: 400px;
 }
@@ -37,22 +37,12 @@ select {
 textarea {
   width: 90%;
   max-width: 400px;
-  height: 150px;
+  height: 200px;
   font-size: 18px;
   padding: 10px;
   border-radius: 12px;
   border: none;
   resize: none;
-  margin-bottom: 15px;
-}
-#translated {
-  width: 90%;
-  max-width: 400px;
-  min-height: 50px;
-  font-size: 18px;
-  padding: 10px;
-  border-radius: 12px;
-  background: rgba(255,255,255,0.1);
   margin-bottom: 15px;
 }
 #error {
@@ -66,89 +56,101 @@ textarea {
 <h2>🎤 Voice Translator Pro</h2>
 
 <select id="sourceLang">
-  <option value="ar">العربية</option>
-  <option value="en">الإنجليزية</option>
-  <option value="fr">الفرنسية</option>
+  <option value="ar">Arabic</option>
+  <option value="en">English</option>
+  <option value="fr">French</option>
+  <option value="es">Spanish</option>
+  <option value="de">German</option>
+  <option value="zh">Chinese</option>
+  <option value="ja">Japanese</option>
+  <option value="hi">Hindi</option>
+  <!-- أضف المزيد من اللغات حسب MyMemory أو Google Translate -->
 </select>
 
 <select id="targetLang">
-  <option value="en">الإنجليزية</option>
-  <option value="ar">العربية</option>
-  <option value="fr">الفرنسية</option>
+  <option value="en">English</option>
+  <option value="ar">Arabic</option>
+  <option value="fr">French</option>
+  <option value="es">Spanish</option>
+  <option value="de">German</option>
+  <option value="zh">Chinese</option>
+  <option value="ja">Japanese</option>
+  <option value="hi">Hindi</option>
 </select>
 
-<button id="startBtn">ابدأ التحدث</button>
+<button id="startBtn">🎤 سجل الكلام</button>
+<button id="translateBtn">🌐 ترجمة</button>
 
-<textarea id="output" placeholder="سيتم كتابة كلامك هنا..." readonly></textarea>
-<div id="translated" placeholder="الترجمة تظهر هنا..."></div>
+<textarea id="translated" placeholder="الترجمة ستظهر هنا..." readonly></textarea>
 <div id="error"></div>
 
 <script>
 const startBtn = document.getElementById("startBtn");
-const output = document.getElementById("output");
-const translatedDiv = document.getElementById("translated");
+const translateBtn = document.getElementById("translateBtn");
+const translatedArea = document.getElementById("translated");
 const errorDiv = document.getElementById("error");
 const sourceLang = document.getElementById("sourceLang");
 const targetLang = document.getElementById("targetLang");
 
 const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+let recognition;
+let recordedText = "";
 
 if(!SpeechRecognition){
   errorDiv.textContent = "متصفحك لا يدعم الإملاء الصوتي (Web Speech API).";
 }
 
-let recognition;
-
+// تسجيل الصوت
 startBtn.addEventListener("click", ()=>{
   errorDiv.textContent = "";
   if(!SpeechRecognition) return;
+  recordedText = "";
+  recognition = new SpeechRecognition();
+  recognition.lang = sourceLang.value;
+  recognition.interimResults = false;
+  recognition.continuous = false; // يسجل مرة واحدة فقط
+
+  recognition.start();
+
+  recognition.onresult = e=>{
+    recordedText = e.results[0][0].transcript;
+  };
+
+  recognition.onerror = e=>{
+    let msg = "";
+    switch(e.error){
+      case "not-allowed": msg="تم رفض الوصول إلى الميكروفون."; break;
+      case "no-speech": msg="لم يتم سماع أي كلام."; break;
+      case "aborted": msg="تم إيقاف التسجيل."; break;
+      default: msg="حدث خطأ: "+e.error;
+    }
+    errorDiv.textContent = msg;
+  };
+});
+
+// ترجمة النص المسجل
+translateBtn.addEventListener("click", async ()=>{
+  if(recordedText.trim() === "") {
+    errorDiv.textContent = "لا يوجد نص لترجمته!";
+    return;
+  }
+  errorDiv.textContent = "";
+  const target = targetLang.value;
+  const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(recordedText)}&langpair=${sourceLang.value}|${target}`;
 
   try{
-    recognition = new SpeechRecognition();
-    recognition.lang = sourceLang.value;
-    recognition.interimResults = false;
-    recognition.continuous = true;
+    const res = await fetch(url);
+    const data = await res.json();
+    const translation = data.responseData.translatedText;
+    translatedArea.value = translation;
 
-    recognition.start();
+    // نطق الترجمة مرة واحدة
+    const utter = new SpeechSynthesisUtterance(translation);
+    utter.lang = target;
+    window.speechSynthesis.speak(utter);
 
-    recognition.onresult = async (event)=>{
-      const text = event.results[event.results.length-1][0].transcript;
-      output.value += text + " ";
-
-      // ترجمة النص باستخدام MyMemory API
-      const target = targetLang.value;
-      const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${sourceLang.value}|${target}`;
-
-      try{
-        const res = await fetch(url);
-        const data = await res.json();
-        const translation = data.responseData.translatedText;
-        translatedDiv.textContent = translation;
-
-        // تحويل النص المترجم إلى صوت
-        const utter = new SpeechSynthesisUtterance(translation);
-        utter.lang = target;
-        window.speechSynthesis.speak(utter);
-
-      }catch(e){
-        errorDiv.textContent = "حدث خطأ أثناء الترجمة: "+e.message;
-      }
-    };
-
-    recognition.onerror = (e)=>{
-      let msg = "";
-      switch(e.error){
-        case "not-allowed": msg="تم رفض الوصول إلى الميكروفون."; break;
-        case "service-not-allowed": msg="خدمة التعرف على الصوت غير متاحة."; break;
-        case "no-speech": msg="لم يتم سماع أي كلام."; break;
-        case "aborted": msg="تم إيقاف التسجيل."; break;
-        default: msg="حدث خطأ: "+e.error;
-      }
-      errorDiv.textContent = msg;
-    };
-
-  }catch(err){
-    errorDiv.textContent = "خطأ داخلي: "+err.message;
+  }catch(e){
+    errorDiv.textContent = "حدث خطأ أثناء الترجمة: "+e.message;
   }
 });
 </script>
