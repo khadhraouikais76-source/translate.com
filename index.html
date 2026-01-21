@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Universal Translator</title>
 
-<!-- Libraries -->
 <script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
 <script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.122/pdf.min.js"></script>
@@ -21,9 +20,7 @@
   --text:#ffffff;
   --muted:#cbd5e1;
 }
-
 *{box-sizing:border-box}
-
 body{
   margin:0;
   font-family:"Segoe UI",Roboto,Arial,sans-serif;
@@ -31,159 +28,33 @@ body{
   color:var(--text);
   min-height:100vh;
 }
-
-/* HEADER */
-header{
-  padding:16px;
-  text-align:center;
-}
-.app-header{
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  gap:12px;
-}
-.app-icon{
-  width:44px;
-  height:44px;
-  border-radius:12px;
-}
-.app-title{
-  font-size:24px;
-  font-weight:700;
-}
-
-/* TABS */
-.tabs{
-  display:flex;
-  background:rgba(0,0,0,.25);
-  backdrop-filter:blur(6px);
-}
-.tabs button{
-  flex:1;
-  padding:14px 6px;
-  border:none;
-  background:none;
-  color:var(--muted);
-  font-size:14px;
-  cursor:pointer;
-  transition:.3s;
-}
-.tabs button:hover{
-  background:rgba(255,255,255,0.1);
-}
-.tabs button.active{
-  color:#fff;
-  background:linear-gradient(135deg,var(--primary),var(--secondary));
-}
-
-/* SECTIONS */
-.section{
-  display:none;
-  padding:16px;
-}
-.section.active{
-  display:block;
-}
-
-/* CARD */
-.card{
-  background:var(--card);
-  border-radius:16px;
-  padding:16px;
-  box-shadow:0 10px 25px rgba(0,0,0,.25);
-  margin-bottom:16px;
-}
-
-/* INPUTS */
-textarea,input,select{
-  width:100%;
-  padding:12px;
-  margin:10px 0;
-  border-radius:12px;
-  border:none;
-  font-size:16px;
-}
+header{padding:16px;text-align:center;}
+.app-header{display:flex;align-items:center;justify-content:center;gap:12px;}
+.app-icon{width:44px;height:44px;border-radius:12px;}
+.app-title{font-size:24px;font-weight:700;}
+.tabs{display:flex;background:rgba(0,0,0,.25);backdrop-filter:blur(6px);}
+.tabs button{flex:1;padding:14px 6px;border:none;background:none;color:var(--muted);font-size:14px;cursor:pointer;transition:.3s;}
+.tabs button:hover{background:rgba(255,255,255,0.1);}
+.tabs button.active{color:#fff;background:linear-gradient(135deg,var(--primary),var(--secondary));}
+.section{display:none;padding:16px;}
+.section.active{display:block;}
+.card{background:var(--card);border-radius:16px;padding:16px;box-shadow:0 10px 25px rgba(0,0,0,.25);margin-bottom:16px;}
+textarea,input,select{width:100%;padding:12px;margin:10px 0;border-radius:12px;border:none;font-size:16px;}
 textarea{min-height:140px}
-
-/* BUTTONS */
-.action{
-  background:linear-gradient(135deg,var(--primary),var(--secondary));
-  border:none;
-  padding:14px;
-  border-radius:14px;
-  font-size:18px;
-  width:100%;
-  color:white;
-  cursor:pointer;
-  margin-top:10px;
-}
-
-/* CONTROLS */
-.controls{
-  display:flex;
-  justify-content:space-around;
-  margin-top:10px;
-}
-.controls button{
-  flex:1;
-  margin:5px;
-  padding:12px;
-  border:none;
-  border-radius:12px;
-  font-size:16px;
-  cursor:pointer;
-}
-
-/* ERROR */
-#error{
-  color:#ff6b6b;
-  margin:10px;
-  text-align:center;
-}
-
-/* LOADER */
-#loader{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.75);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  flex-direction:column;
-  z-index:999;
-}
-#emoji{
-  font-size:60px;
-  animation:bounce 1s infinite;
-}
-@keyframes bounce{
-  0%,100%{transform:translateY(0)}
-  50%{transform:translateY(-14px)}
-}
-#progress{
-  width:70%;
-  height:8px;
-  background:#444;
-  border-radius:10px;
-  margin-top:20px;
-  overflow:hidden;
-}
-#bar{
-  height:100%;
-  width:0%;
-  background:linear-gradient(135deg,var(--primary),var(--secondary));
-  transition:width .4s;
-}
-#loaderText{
-  margin-top:14px;
-  font-size:16px;
-}
+.action{background:linear-gradient(135deg,var(--primary),var(--secondary));border:none;padding:14px;border-radius:14px;font-size:18px;width:100%;color:white;cursor:pointer;margin-top:10px;}
+.controls{display:flex;justify-content:space-around;margin-top:10px;}
+.controls button{flex:1;margin:5px;padding:12px;border:none;border-radius:12px;font-size:16px;cursor:pointer;}
+#error{color:#ff6b6b;margin:10px;text-align:center;}
+#loader{position:fixed;inset:0;background:rgba(0,0,0,.75);display:none;align-items:center;justify-content:center;flex-direction:column;z-index:999;}
+#emoji{font-size:60px;animation:bounce 1s infinite;}
+@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+#progress{width:70%;height:8px;background:#444;border-radius:10px;margin-top:20px;overflow:hidden;}
+#bar{height:100%;width:0%;background:linear-gradient(135deg,var(--primary),var(--secondary));transition:width .4s;}
+#loaderText{margin-top:14px;font-size:16px;}
 </style>
 </head>
 
 <body>
-
 <header>
   <div class="app-header">
     <img class="app-icon" src="https://cdn-icons-png.flaticon.com/512/3898/3898082.png">
@@ -217,16 +88,16 @@ textarea{min-height:140px}
 <!-- IMAGE -->
 <div class="section">
   <div class="card">
-    <input type="file" accept="image/*" onchange="ocrImage(this)">
-    <button class="action" onclick="repeatLastText()">🌐 Translate & Speak</button>
+    <input type="file" accept="image/*" onchange="selectedImage=this.files[0];">
+    <button class="action" onclick="processImage()">🌐 Translate & Speak</button>
   </div>
 </div>
 
 <!-- FILE -->
 <div class="section">
   <div class="card">
-    <input type="file" accept=".txt,.docx,.pdf" onchange="readFile(this)">
-    <button class="action" onclick="repeatLastText()">🌐 Translate & Speak</button>
+    <input type="file" accept=".txt,.docx,.pdf" onchange="selectedFile=this.files[0];">
+    <button class="action" onclick="processFile()">🌐 Translate & Speak</button>
   </div>
 </div>
 
@@ -235,10 +106,8 @@ textarea{min-height:140px}
   <div class="card">
     <label>From language</label>
     <select id="fromLang"></select>
-
     <label>To language</label>
     <select id="toLang"></select>
-
     <div class="controls">
       <button onclick="pause()">⏸ Pause</button>
       <button onclick="resume()">▶ Resume</button>
@@ -257,18 +126,9 @@ textarea{min-height:140px}
 </div>
 
 <script>
-let lastText="";
-const languages = [
-  ["en","English"],["ar","Arabic"],["fr","French"],["es","Spanish"],
-  ["de","German"],["it","Italian"],["pt","Portuguese"],
-  ["ru","Russian"],["tr","Turkish"],["hi","Hindi"],
-  ["zh-CN","Chinese"],["ja","Japanese"],["ko","Korean"],
-  ["id","Indonesian"],["ur","Urdu"]
-];
-languages.forEach(l=>{
-  fromLang.innerHTML+=`<option value="${l[0]}">${l[1]}</option>`;
-  toLang.innerHTML+=`<option value="${l[0]}">${l[1]}</option>`;
-});
+let lastText="", selectedFile=null, selectedImage=null;
+const languages=[["en","English"],["ar","Arabic"],["fr","French"],["es","Spanish"],["de","German"],["it","Italian"],["pt","Portuguese"],["ru","Russian"],["tr","Turkish"],["hi","Hindi"],["zh-CN","Chinese"],["ja","Japanese"],["ko","Korean"],["id","Indonesian"],["ur","Urdu"]];
+languages.forEach(l=>{fromLang.innerHTML+=`<option value="${l[0]}">${l[1]}</option>`; toLang.innerHTML+=`<option value="${l[0]}">${l[1]}</option>`;});
 toLang.value="en";
 
 /* TABS */
@@ -283,12 +143,11 @@ function updateProgress(p){ bar.style.width=p+"%"; }
 function hideLoader(){ loader.style.display="none"; bar.style.width="0%"; }
 
 /* SPEECH */
-let synth = window.speechSynthesis;
-let utter;
-function speak(text,lang){ lastText=text; showLoader("🔊 Speaking...","🗣️",90); synth.cancel(); utter = new SpeechSynthesisUtterance(text); utter.lang=lang; utter.onend=hideLoader; synth.speak(utter); }
-function pause(){ synth.pause(); }
-function resume(){ synth.resume(); }
-function stop(){ synth.cancel(); hideLoader(); }
+let synth=window.speechSynthesis,utter;
+function speak(text,lang){ lastText=text; showLoader("🔊 Speaking...","🗣️",90); synth.cancel(); utter=new SpeechSynthesisUtterance(text); utter.lang=lang; utter.onend=hideLoader; synth.speak(utter);}
+function pause(){synth.pause();}
+function resume(){synth.resume();}
+function stop(){synth.cancel(); hideLoader();}
 
 /* TRANSLATE */
 async function translate(text){
@@ -296,11 +155,11 @@ async function translate(text){
   lastText=text;
   showLoader("🔄 Translating...","🔄",40);
   try{
-    const r = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${fromLang.value}|${toLang.value}`);
+    const r=await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${fromLang.value}|${toLang.value}`);
     updateProgress(70);
-    const d = await r.json();
+    const d=await r.json();
     speak(d.responseData.translatedText,toLang.value);
-  }catch{ hideLoader(); error.textContent="Translation error"; }
+  }catch{hideLoader(); error.textContent="Translation error";}
 }
 function repeatLastText(){ if(lastText) translate(lastText); }
 function translateText(){ translate(textInput.value); }
@@ -310,45 +169,45 @@ function startVoice(){
   const R=window.SpeechRecognition||webkitSpeechRecognition;
   if(!R){ error.textContent="Speech not supported"; return; }
   showLoader("🎤 Listening...","🎤",20);
-  const r=new R();
-  r.lang=fromLang.value;
+  const r=new R(); r.lang=fromLang.value;
   r.onresult=e=>translate(e.results[0][0].transcript);
   r.onerror=e=>{ hideLoader(); error.textContent=e.error; }
   r.start();
 }
 
-/* OCR IMAGE */
-function ocrImage(i){
+/* IMAGE */
+function processImage(){
+  if(!selectedImage){ error.textContent="No image selected"; return; }
   showLoader("🖼️ OCR...","🖼️",20);
-  Tesseract.recognize(i.files[0],'ara+eng')
+  Tesseract.recognize(selectedImage,'ara+eng')
     .then(r=>translate(r.data.text))
     .catch(()=>{ hideLoader(); error.textContent="OCR failed"; });
 }
 
-/* TXT + DOCX + PDF */
-function readFile(i){
-  const f=i.files[0]; if(!f) return;
+/* FILE */
+function processFile(){
+  if(!selectedFile){ error.textContent="No file selected"; return; }
   showLoader("📂 Reading file...","📂",20);
+  const f=selectedFile;
   if(f.name.endsWith(".txt")){
     const r=new FileReader(); r.onload=e=>translate(e.target.result); r.readAsText(f);
   }else if(f.name.endsWith(".docx")){
     const r=new FileReader(); r.onload=e=>{ mammoth.extractRawText({arrayBuffer:e.target.result}).then(res=>translate(res.value)).catch(()=>{ hideLoader(); error.textContent="DOCX failed"; }); }; r.readAsArrayBuffer(f);
   }else if(f.name.endsWith(".pdf")){
     const r=new FileReader(); r.onload=async e=>{
-      const typedarray = new Uint8Array(e.target.result);
-      const pdf = await pdfjsLib.getDocument(typedarray).promise;
+      const typedarray=new Uint8Array(e.target.result);
+      const pdf=await pdfjsLib.getDocument(typedarray).promise;
       let fullText="";
-      for(let p=1;p<=pdf.numPages;p++){ 
-        const page = await pdf.getPage(p); 
-        const txt = await page.getTextContent(); 
-        fullText += txt.items.map(i=>i.str).join(" ") + "\n"; 
-        updateProgress(Math.floor((p/pdf.numPages)*70)+20); 
+      for(let p=1;p<=pdf.numPages;p++){
+        const page=await pdf.getPage(p);
+        const txt=await page.getTextContent();
+        fullText+=txt.items.map(i=>i.str).join(" ")+"\n";
+        updateProgress(Math.floor((p/pdf.numPages)*70)+20);
       }
       translate(fullText);
     }; r.readAsArrayBuffer(f);
   }else{ hideLoader(); error.textContent="Unsupported file type"; }
 }
 </script>
-
 </body>
 </html>
