@@ -118,18 +118,24 @@ textarea[readonly]{background:rgba(255,255,255,0.1);color:#fff;min-height:120px;
 </div>
 
 <script>
-let lastText="";
 const languages=[
-["en","English"],["ar","Arabic"],["fr","French"],["es","Spanish"],["de","German"],["it","Italian"],
-["pt","Portuguese"],["ru","Russian"],["tr","Turkish"],["hi","Hindi"],["zh","Chinese"],["ja","Japanese"],
+["en","English"],["ar","Arabic"],["fr","French"],["es","Spanish"],
+["de","German"],["it","Italian"],["pt","Portuguese"],["ru","Russian"],
+["tr","Turkish"],["hi","Hindi"],["zh","Chinese"],["ja","Japanese"],
 ["ko","Korean"],["id","Indonesian"],["ur","Urdu"]
 ];
 
-// Fill selects
-const selects=[fromLangTT,toLangTT,fromLangTS,toLangTS,fromLangSTT,toLangSTT,fromLangSTS,toLangSTS];
-selects.forEach(sel=>languages.forEach(l=>sel.innerHTML+=`<option value="${l[0]}">${l[1]}</option>`));
-toLangTT.value="en"; toLangTS.value="en"; toLangSTT.value="en"; toLangSTS.value="en";
-fromLangTT.value="auto"; fromLangTS.value="auto"; fromLangSTT.value="auto"; fromLangSTS.value="auto";
+function fillSelects(){
+  const selects=["fromLangTT","toLangTT","fromLangTS","toLangTS","fromLangSTT","toLangSTT","fromLangSTS","toLangSTS"];
+  selects.forEach(id=>{
+    const sel=document.getElementById(id);
+    sel.innerHTML="";
+    languages.forEach(l=>sel.innerHTML+=`<option value="${l[0]}">${l[1]}</option>`);
+  });
+  // Default values
+  selects.forEach(id=>document.getElementById(id).value="en");
+}
+window.onload = fillSelects;
 
 /* Tabs */
 function tab(i){
@@ -141,8 +147,20 @@ function tab(i){
 function showLoader(text,emoji="⏳",p=30){ loader.style.display="flex"; loaderText.textContent=text; document.getElementById("emoji").textContent=emoji; bar.style.width=p+"%";}
 function hideLoader(){ loader.style.display="none"; bar.style.width="0%"; }
 
+/* Copy Text */
+function copyText(id){
+  const txt=document.getElementById(id);
+  txt.select();
+  txt.setSelectionRange(0, 99999);
+  document.execCommand("copy");
+  alert("Text copied!");
+}
+
 /* Translate function */
 async function translate(text,source,target){
+  if(!text) return "";
+  source = source || "en"; // default if empty
+  target = target || "en"; // default if empty
   showLoader("🔄 Translating...","🔄",30);
   try{
     const res=await fetch("https://libretranslate.de/translate",{
@@ -156,21 +174,11 @@ async function translate(text,source,target){
   }catch(e){ hideLoader(); alert("Translation failed: "+e); return text; }
 }
 
-/* Copy Text */
-function copyText(id){
-  const txt=document.getElementById(id);
-  txt.select();
-  txt.setSelectionRange(0, 99999);
-  document.execCommand("copy");
-  alert("Text copied!");
-}
-
 /* Text → Text */
 async function textToText(){
   const text=document.getElementById("textInputTT").value.trim();
   if(!text) return alert("Enter text!");
-  const source=fromLangTT.value,target=toLangTT.value;
-  const translated=await translate(text,source,target);
+  const translated=await translate(text,document.getElementById("fromLangTT").value,document.getElementById("toLangTT").value);
   document.getElementById("resultTextTT").value=translated;
   navigator.clipboard.writeText(translated);
 }
@@ -179,10 +187,9 @@ async function textToText(){
 async function textToSpeech(){
   const text=document.getElementById("textInputTS").value.trim();
   if(!text) return alert("Enter text!");
-  const source=fromLangTS.value,target=toLangTS.value;
-  const translated=await translate(text,source,target);
+  const translated=await translate(text,document.getElementById("fromLangTS").value,document.getElementById("toLangTS").value);
   document.getElementById("resultTextTS").textContent=translated;
-  speak(translated,target);
+  speak(translated,document.getElementById("toLangTS").value);
 }
 
 /* Speech → Text */
@@ -190,11 +197,11 @@ function speechToText(){
   const R=window.SpeechRecognition||webkitSpeechRecognition;
   if(!R) return alert("Speech recognition not supported");
   const r=new R();
-  r.lang=fromLangSTT.value;
+  r.lang=document.getElementById("fromLangSTT").value;
   showLoader("🎤 Listening...","🎤",20);
   r.onresult=async e=>{
     const text=e.results[0][0].transcript;
-    const translated=await translate(text,fromLangSTT.value,toLangSTT.value);
+    const translated=await translate(text,document.getElementById("fromLangSTT").value,document.getElementById("toLangSTT").value);
     document.getElementById("resultTextSTT").value=translated;
     navigator.clipboard.writeText(translated);
     hideLoader();
@@ -208,13 +215,13 @@ function speechToSpeech(){
   const R=window.SpeechRecognition||webkitSpeechRecognition;
   if(!R) return alert("Speech recognition not supported");
   const r=new R();
-  r.lang=fromLangSTS.value;
+  r.lang=document.getElementById("fromLangSTS").value;
   showLoader("🎤 Listening & Translating...","🎤",20);
   r.onresult=async e=>{
     const text=e.results[0][0].transcript;
-    const translated=await translate(text,fromLangSTS.value,toLangSTS.value);
+    const translated=await translate(text,document.getElementById("fromLangSTS").value,document.getElementById("toLangSTS").value);
     document.getElementById("resultTextSTS").textContent=translated;
-    speak(translated,toLangSTS.value);
+    speak(translated,document.getElementById("toLangSTS").value);
   };
   r.onerror=e=>{ hideLoader(); alert(e.error); }
   r.start();
