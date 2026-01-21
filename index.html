@@ -1,158 +1,353 @@
 <!DOCTYPE html>
-<html lang="ar">
+<html lang="en">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Voice Translator Pro</title>
+<title>Universal Translator</title>
+
+<!-- Libraries -->
+<script src="https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js"></script>
+<script src="https://unpkg.com/mammoth/mammoth.browser.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/3.11.122/pdf.min.js"></script>
+
 <style>
-body {
-  font-family: Arial, sans-serif;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  margin: 0;
-  padding: 20px;
-  background: linear-gradient(135deg,#1f1c2c,#928dab);
-  color: #fff;
+:root{
+  --primary:#6c63ff;
+  --secondary:#00c9a7;
+  --bg1:#0f2027;
+  --bg2:#203a43;
+  --bg3:#2c5364;
+  --card:#1e293b;
+  --text:#ffffff;
+  --muted:#cbd5e1;
 }
-h2 { margin-bottom: 20px; }
-button {
-  font-size: 20px;
-  padding: 15px 30px;
-  border-radius: 12px;
-  border: none;
-  background: #4caf50;
-  color: white;
-  margin-bottom: 10px;
-  width: 90%;
-  max-width: 400px;
+
+*{box-sizing:border-box}
+
+body{
+  margin:0;
+  font-family:"Segoe UI",Roboto,Arial,sans-serif;
+  background:linear-gradient(135deg,var(--bg1),var(--bg2),var(--bg3));
+  color:var(--text);
+  min-height:100vh;
 }
-select {
-  padding: 10px;
-  font-size: 16px;
-  margin: 5px;
-  border-radius: 8px;
-  border: none;
+
+/* HEADER */
+header{
+  padding:16px;
+  text-align:center;
 }
-textarea {
-  width: 90%;
-  max-width: 400px;
-  height: 200px;
-  font-size: 18px;
-  padding: 10px;
-  border-radius: 12px;
-  border: none;
-  resize: none;
-  margin-bottom: 15px;
+.app-header{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  gap:12px;
 }
-#error {
-  color: #ff5555;
-  font-size: 14px;
+.app-icon{
+  width:44px;
+  height:44px;
+  border-radius:12px;
+}
+.app-title{
+  font-size:24px;
+  font-weight:700;
+}
+
+/* TABS */
+.tabs{
+  display:flex;
+  background:rgba(0,0,0,.25);
+  backdrop-filter:blur(6px);
+}
+.tabs button{
+  flex:1;
+  padding:14px 6px;
+  border:none;
+  background:none;
+  color:var(--muted);
+  font-size:14px;
+  cursor:pointer;
+  transition:.3s;
+}
+.tabs button:hover{
+  background:rgba(255,255,255,0.1);
+}
+.tabs button.active{
+  color:#fff;
+  background:linear-gradient(135deg,var(--primary),var(--secondary));
+}
+
+/* SECTIONS */
+.section{
+  display:none;
+  padding:16px;
+}
+.section.active{
+  display:block;
+}
+
+/* CARD */
+.card{
+  background:var(--card);
+  border-radius:16px;
+  padding:16px;
+  box-shadow:0 10px 25px rgba(0,0,0,.25);
+  margin-bottom:16px;
+}
+
+/* INPUTS */
+textarea,input,select{
+  width:100%;
+  padding:12px;
+  margin:10px 0;
+  border-radius:12px;
+  border:none;
+  font-size:16px;
+}
+textarea{min-height:140px}
+
+/* BUTTONS */
+.action{
+  background:linear-gradient(135deg,var(--primary),var(--secondary));
+  border:none;
+  padding:14px;
+  border-radius:14px;
+  font-size:18px;
+  width:100%;
+  color:white;
+  cursor:pointer;
+  margin-top:10px;
+}
+
+/* CONTROLS */
+.controls{
+  display:flex;
+  justify-content:space-around;
+  margin-top:10px;
+}
+.controls button{
+  flex:1;
+  margin:5px;
+  padding:12px;
+  border:none;
+  border-radius:12px;
+  font-size:16px;
+  cursor:pointer;
+}
+
+/* ERROR */
+#error{
+  color:#ff6b6b;
+  margin:10px;
+  text-align:center;
+}
+
+/* LOADER */
+#loader{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.75);
+  display:none;
+  align-items:center;
+  justify-content:center;
+  flex-direction:column;
+  z-index:999;
+}
+#emoji{
+  font-size:60px;
+  animation:bounce 1s infinite;
+}
+@keyframes bounce{
+  0%,100%{transform:translateY(0)}
+  50%{transform:translateY(-14px)}
+}
+#progress{
+  width:70%;
+  height:8px;
+  background:#444;
+  border-radius:10px;
+  margin-top:20px;
+  overflow:hidden;
+}
+#bar{
+  height:100%;
+  width:0%;
+  background:linear-gradient(135deg,var(--primary),var(--secondary));
+  transition:width .4s;
+}
+#loaderText{
+  margin-top:14px;
+  font-size:16px;
 }
 </style>
 </head>
+
 <body>
 
-<h2>🎤 Voice Translator Pro</h2>
+<header>
+  <div class="app-header">
+    <img class="app-icon" src="https://cdn-icons-png.flaticon.com/512/3898/3898082.png">
+    <div class="app-title">Universal Translator</div>
+  </div>
+</header>
 
-<select id="sourceLang">
-  <option value="ar">Arabic</option>
-  <option value="en">English</option>
-  <option value="fr">French</option>
-  <option value="es">Spanish</option>
-  <option value="de">German</option>
-  <option value="zh">Chinese</option>
-  <option value="ja">Japanese</option>
-  <option value="hi">Hindi</option>
-  <!-- أضف المزيد من اللغات حسب MyMemory أو Google Translate -->
-</select>
+<div class="tabs">
+  <button class="active" onclick="tab(0)">🎤 Voice</button>
+  <button onclick="tab(1)">📝 Text</button>
+  <button onclick="tab(2)">🖼 Image</button>
+  <button onclick="tab(3)">📂 File</button>
+  <button onclick="tab(4)">⚙ Settings</button>
+</div>
 
-<select id="targetLang">
-  <option value="en">English</option>
-  <option value="ar">Arabic</option>
-  <option value="fr">French</option>
-  <option value="es">Spanish</option>
-  <option value="de">German</option>
-  <option value="zh">Chinese</option>
-  <option value="ja">Japanese</option>
-  <option value="hi">Hindi</option>
-</select>
+<!-- VOICE -->
+<div class="section active">
+  <div class="card">
+    <button class="action" onclick="startVoice()">🎤 Speak & Translate</button>
+  </div>
+</div>
 
-<button id="startBtn">🎤 سجل الكلام</button>
-<button id="translateBtn">🌐 ترجمة</button>
+<!-- TEXT -->
+<div class="section">
+  <div class="card">
+    <textarea id="textInput" placeholder="Type or paste text here..."></textarea>
+    <button class="action" onclick="translateText()">🌐 Translate & Speak</button>
+  </div>
+</div>
 
-<textarea id="translated" placeholder="الترجمة ستظهر هنا..." readonly></textarea>
+<!-- IMAGE -->
+<div class="section">
+  <div class="card">
+    <input type="file" accept="image/*" onchange="ocrImage(this)">
+    <button class="action" onclick="repeatLastText()">🌐 Translate & Speak</button>
+  </div>
+</div>
+
+<!-- FILE -->
+<div class="section">
+  <div class="card">
+    <input type="file" accept=".txt,.docx,.pdf" onchange="readFile(this)">
+    <button class="action" onclick="repeatLastText()">🌐 Translate & Speak</button>
+  </div>
+</div>
+
+<!-- SETTINGS -->
+<div class="section">
+  <div class="card">
+    <label>From language</label>
+    <select id="fromLang"></select>
+
+    <label>To language</label>
+    <select id="toLang"></select>
+
+    <div class="controls">
+      <button onclick="pause()">⏸ Pause</button>
+      <button onclick="resume()">▶ Resume</button>
+      <button onclick="stop()">⏹ Stop</button>
+    </div>
+  </div>
+</div>
+
 <div id="error"></div>
 
+<!-- LOADER -->
+<div id="loader">
+  <div id="emoji">⏳</div>
+  <div id="progress"><div id="bar"></div></div>
+  <div id="loaderText">Processing...</div>
+</div>
+
 <script>
-const startBtn = document.getElementById("startBtn");
-const translateBtn = document.getElementById("translateBtn");
-const translatedArea = document.getElementById("translated");
-const errorDiv = document.getElementById("error");
-const sourceLang = document.getElementById("sourceLang");
-const targetLang = document.getElementById("targetLang");
+let lastText="";
+const languages = [
+  ["en","English"],["ar","Arabic"],["fr","French"],["es","Spanish"],
+  ["de","German"],["it","Italian"],["pt","Portuguese"],
+  ["ru","Russian"],["tr","Turkish"],["hi","Hindi"],
+  ["zh-CN","Chinese"],["ja","Japanese"],["ko","Korean"],
+  ["id","Indonesian"],["ur","Urdu"]
+];
+languages.forEach(l=>{
+  fromLang.innerHTML+=`<option value="${l[0]}">${l[1]}</option>`;
+  toLang.innerHTML+=`<option value="${l[0]}">${l[1]}</option>`;
+});
+toLang.value="en";
 
-const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-let recognition;
-let recordedText = "";
-
-if(!SpeechRecognition){
-  errorDiv.textContent = "متصفحك لا يدعم الإملاء الصوتي (Web Speech API).";
+/* TABS */
+function tab(i){
+  document.querySelectorAll(".section").forEach((s,n)=>s.classList.toggle("active",n===i));
+  document.querySelectorAll(".tabs button").forEach((b,n)=>b.classList.toggle("active",n===i));
 }
 
-// تسجيل الصوت
-startBtn.addEventListener("click", ()=>{
-  errorDiv.textContent = "";
-  if(!SpeechRecognition) return;
-  recordedText = "";
-  recognition = new SpeechRecognition();
-  recognition.lang = sourceLang.value;
-  recognition.interimResults = false;
-  recognition.continuous = false; // يسجل مرة واحدة فقط
+/* LOADER */
+function showLoader(text,emoji="⏳",p=30){ loader.style.display="flex"; loaderText.textContent=text; document.getElementById("emoji").textContent=emoji; bar.style.width=p+"%";}
+function updateProgress(p){ bar.style.width=p+"%"; }
+function hideLoader(){ loader.style.display="none"; bar.style.width="0%"; }
 
-  recognition.start();
+/* SPEECH */
+let synth = window.speechSynthesis;
+let utter;
+function speak(text,lang){ lastText=text; showLoader("🔊 Speaking...","🗣️",90); synth.cancel(); utter = new SpeechSynthesisUtterance(text); utter.lang=lang; utter.onend=hideLoader; synth.speak(utter); }
+function pause(){ synth.pause(); }
+function resume(){ synth.resume(); }
+function stop(){ synth.cancel(); hideLoader(); }
 
-  recognition.onresult = e=>{
-    recordedText = e.results[0][0].transcript;
-  };
-
-  recognition.onerror = e=>{
-    let msg = "";
-    switch(e.error){
-      case "not-allowed": msg="تم رفض الوصول إلى الميكروفون."; break;
-      case "no-speech": msg="لم يتم سماع أي كلام."; break;
-      case "aborted": msg="تم إيقاف التسجيل."; break;
-      default: msg="حدث خطأ: "+e.error;
-    }
-    errorDiv.textContent = msg;
-  };
-});
-
-// ترجمة النص المسجل
-translateBtn.addEventListener("click", async ()=>{
-  if(recordedText.trim() === "") {
-    errorDiv.textContent = "لا يوجد نص لترجمته!";
-    return;
-  }
-  errorDiv.textContent = "";
-  const target = targetLang.value;
-  const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(recordedText)}&langpair=${sourceLang.value}|${target}`;
-
+/* TRANSLATE */
+async function translate(text){
+  if(!text.trim()){ error.textContent="No text to translate"; return; }
+  lastText=text;
+  showLoader("🔄 Translating...","🔄",40);
   try{
-    const res = await fetch(url);
-    const data = await res.json();
-    const translation = data.responseData.translatedText;
-    translatedArea.value = translation;
+    const r = await fetch(`https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${fromLang.value}|${toLang.value}`);
+    updateProgress(70);
+    const d = await r.json();
+    speak(d.responseData.translatedText,toLang.value);
+  }catch{ hideLoader(); error.textContent="Translation error"; }
+}
+function repeatLastText(){ if(lastText) translate(lastText); }
+function translateText(){ translate(textInput.value); }
 
-    // نطق الترجمة مرة واحدة
-    const utter = new SpeechSynthesisUtterance(translation);
-    utter.lang = target;
-    window.speechSynthesis.speak(utter);
+/* VOICE */
+function startVoice(){
+  const R=window.SpeechRecognition||webkitSpeechRecognition;
+  if(!R){ error.textContent="Speech not supported"; return; }
+  showLoader("🎤 Listening...","🎤",20);
+  const r=new R();
+  r.lang=fromLang.value;
+  r.onresult=e=>translate(e.results[0][0].transcript);
+  r.onerror=e=>{ hideLoader(); error.textContent=e.error; }
+  r.start();
+}
 
-  }catch(e){
-    errorDiv.textContent = "حدث خطأ أثناء الترجمة: "+e.message;
-  }
-});
+/* OCR IMAGE */
+function ocrImage(i){
+  showLoader("🖼️ OCR...","🖼️",20);
+  Tesseract.recognize(i.files[0],'ara+eng')
+    .then(r=>translate(r.data.text))
+    .catch(()=>{ hideLoader(); error.textContent="OCR failed"; });
+}
+
+/* TXT + DOCX + PDF */
+function readFile(i){
+  const f=i.files[0]; if(!f) return;
+  showLoader("📂 Reading file...","📂",20);
+  if(f.name.endsWith(".txt")){
+    const r=new FileReader(); r.onload=e=>translate(e.target.result); r.readAsText(f);
+  }else if(f.name.endsWith(".docx")){
+    const r=new FileReader(); r.onload=e=>{ mammoth.extractRawText({arrayBuffer:e.target.result}).then(res=>translate(res.value)).catch(()=>{ hideLoader(); error.textContent="DOCX failed"; }); }; r.readAsArrayBuffer(f);
+  }else if(f.name.endsWith(".pdf")){
+    const r=new FileReader(); r.onload=async e=>{
+      const typedarray = new Uint8Array(e.target.result);
+      const pdf = await pdfjsLib.getDocument(typedarray).promise;
+      let fullText="";
+      for(let p=1;p<=pdf.numPages;p++){ 
+        const page = await pdf.getPage(p); 
+        const txt = await page.getTextContent(); 
+        fullText += txt.items.map(i=>i.str).join(" ") + "\n"; 
+        updateProgress(Math.floor((p/pdf.numPages)*70)+20); 
+      }
+      translate(fullText);
+    }; r.readAsArrayBuffer(f);
+  }else{ hideLoader(); error.textContent="Unsupported file type"; }
+}
 </script>
 
 </body>
