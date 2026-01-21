@@ -1,0 +1,157 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Voice Translator Pro</title>
+<style>
+body {
+  font-family: Arial, sans-serif;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin: 0;
+  padding: 20px;
+  background: linear-gradient(135deg,#1f1c2c,#928dab);
+  color: #fff;
+}
+h2 { margin-bottom: 20px; }
+button {
+  font-size: 20px;
+  padding: 15px 30px;
+  border-radius: 12px;
+  border: none;
+  background: #4caf50;
+  color: white;
+  margin-bottom: 20px;
+  width: 90%;
+  max-width: 400px;
+}
+select {
+  padding: 10px;
+  font-size: 16px;
+  margin: 5px;
+  border-radius: 8px;
+  border: none;
+}
+textarea {
+  width: 90%;
+  max-width: 400px;
+  height: 150px;
+  font-size: 18px;
+  padding: 10px;
+  border-radius: 12px;
+  border: none;
+  resize: none;
+  margin-bottom: 15px;
+}
+#translated {
+  width: 90%;
+  max-width: 400px;
+  min-height: 50px;
+  font-size: 18px;
+  padding: 10px;
+  border-radius: 12px;
+  background: rgba(255,255,255,0.1);
+  margin-bottom: 15px;
+}
+#error {
+  color: #ff5555;
+  font-size: 14px;
+}
+</style>
+</head>
+<body>
+
+<h2>🎤 Voice Translator Pro</h2>
+
+<select id="sourceLang">
+  <option value="ar">العربية</option>
+  <option value="en">الإنجليزية</option>
+  <option value="fr">الفرنسية</option>
+</select>
+
+<select id="targetLang">
+  <option value="en">الإنجليزية</option>
+  <option value="ar">العربية</option>
+  <option value="fr">الفرنسية</option>
+</select>
+
+<button id="startBtn">ابدأ التحدث</button>
+
+<textarea id="output" placeholder="سيتم كتابة كلامك هنا..." readonly></textarea>
+<div id="translated" placeholder="الترجمة تظهر هنا..."></div>
+<div id="error"></div>
+
+<script>
+const startBtn = document.getElementById("startBtn");
+const output = document.getElementById("output");
+const translatedDiv = document.getElementById("translated");
+const errorDiv = document.getElementById("error");
+const sourceLang = document.getElementById("sourceLang");
+const targetLang = document.getElementById("targetLang");
+
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+if(!SpeechRecognition){
+  errorDiv.textContent = "متصفحك لا يدعم الإملاء الصوتي (Web Speech API).";
+}
+
+let recognition;
+
+startBtn.addEventListener("click", ()=>{
+  errorDiv.textContent = "";
+  if(!SpeechRecognition) return;
+
+  try{
+    recognition = new SpeechRecognition();
+    recognition.lang = sourceLang.value;
+    recognition.interimResults = false;
+    recognition.continuous = true;
+
+    recognition.start();
+
+    recognition.onresult = async (event)=>{
+      const text = event.results[event.results.length-1][0].transcript;
+      output.value += text + " ";
+
+      // ترجمة النص باستخدام MyMemory API
+      const target = targetLang.value;
+      const url = `https://api.mymemory.translated.net/get?q=${encodeURIComponent(text)}&langpair=${sourceLang.value}|${target}`;
+
+      try{
+        const res = await fetch(url);
+        const data = await res.json();
+        const translation = data.responseData.translatedText;
+        translatedDiv.textContent = translation;
+
+        // تحويل النص المترجم إلى صوت
+        const utter = new SpeechSynthesisUtterance(translation);
+        utter.lang = target;
+        window.speechSynthesis.speak(utter);
+
+      }catch(e){
+        errorDiv.textContent = "حدث خطأ أثناء الترجمة: "+e.message;
+      }
+    };
+
+    recognition.onerror = (e)=>{
+      let msg = "";
+      switch(e.error){
+        case "not-allowed": msg="تم رفض الوصول إلى الميكروفون."; break;
+        case "service-not-allowed": msg="خدمة التعرف على الصوت غير متاحة."; break;
+        case "no-speech": msg="لم يتم سماع أي كلام."; break;
+        case "aborted": msg="تم إيقاف التسجيل."; break;
+        default: msg="حدث خطأ: "+e.error;
+      }
+      errorDiv.textContent = msg;
+    };
+
+  }catch(err){
+    errorDiv.textContent = "خطأ داخلي: "+err.message;
+  }
+});
+</script>
+
+</body>
+</html>
